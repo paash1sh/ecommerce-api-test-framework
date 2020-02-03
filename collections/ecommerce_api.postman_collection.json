@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "Ecommerce API Collection",
+    "description": "API tests for cart, checkout, and product endpoints",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://ecommerce.rivia.internal" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"testuser@rivia.com\", \"password\": \"Test@123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('token', json.token);",
+                  "pm.test('Token received', function() { pm.expect(json.token).to.not.be.empty; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/products",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Products array returned', function() { pm.expect(json.products).to.be.an('array'); });",
+                  "pm.test('Products not empty', function() { pm.expect(json.products.length).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/products/1",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Has name field', function() { pm.expect(json).to.have.property('name'); });",
+                  "pm.test('Has price field', function() { pm.expect(json).to.have.property('price'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/cart/add",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"product_id\": 1, \"quantity\": 2, \"variant\": \"M\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Cart ID present', function() { pm.expect(json).to.have.property('cart_id'); });",
+                  "pm.environment.set('cart_item_id', json.cart_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/cart",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Items array present', function() { pm.expect(json.items).to.be.an('array'); });",
+                  "pm.test('Total price present', function() { pm.expect(json).to.have.property('total_price'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "item": [
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/checkout",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"shipping_address\": {\"name\": \"Test User\", \"street\": \"123 Test Lane\", \"city\": \"Kathmandu\", \"zip\": \"44600\", \"country\": \"NP\"}, \"payment_method\": \"credit_card\", \"card_last4\": \"4242\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function() { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Order ID present', function() { pm.expect(json).to.have.property('order_id'); });",
+                  "pm.test('Status is pending', function() { pm.expect(json.status).to.eql('pending'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
