@@ -26,3 +26,4 @@ class TestData:
             "email": "qatest@rivia.com",
             "password": "QATest@123"
         }
+# test data
