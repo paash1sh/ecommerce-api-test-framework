@@ -52,3 +52,4 @@ collections/     # Postman collection JSON
 reports/         # Test output reports
 ```
 # init
+# readme update
