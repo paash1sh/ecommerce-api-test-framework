@@ -126,3 +126,4 @@ if __name__ == "__main__":
 # cart tests
 # checkout tests
 # perf assert
+# cart setup fix
